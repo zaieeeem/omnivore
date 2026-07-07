@@ -70,3 +70,30 @@ jobs:
           path: android/Omnivore/app/build/outputs/bundle/release/*.aab
           if-no-files-found: error
           retention-days: 30
+
+      # --- Ship to Google Play (Internal testing) -------------------------------
+      # Fires only when PLAY_SERVICE_ACCOUNT_JSON is set. Read via env so the JSON's
+      # embedded quotes don't break the shell presence test. The r0adkll action is a
+      # `uses:` step, so releaseFiles is resolved from the repo root (not the job's
+      # android/Omnivore working-directory).
+      - name: Check for Play service account
+        id: playsa
+        env:
+          PLAY_SA: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+        run: |
+          if [ -n "$PLAY_SA" ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::PLAY_SERVICE_ACCOUNT_JSON not set — skipping Play upload (AAB on the GH artifact only)."
+          fi
+
+      - name: Upload AAB to Google Play (internal track)
+        if: ${{ steps.playsa.outputs.present == 'true' }}
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: com.error314.omnivore
+          releaseFiles: android/Omnivore/app/build/outputs/bundle/release/*.aab
+          track: internal
+          status: completed
