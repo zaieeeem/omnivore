@@ -19,6 +19,32 @@ if (keystorePropertiesFile.exists()) {
     }
 }
 
+// Release signing material — the Play UPLOAD key. Under Play App Signing,
+// Google generates and holds the actual app signing key and re-signs store
+// distributions; this keystore only authenticates Play uploads and signs
+// sideload/QA builds. CI provides it via environment variables; a local
+// developer may provide it via app/external/keystore.properties. When neither
+// is present (the common self-host / keyless-clone case) the release build
+// gracefully falls back to debug signing so `assembleRelease` still works.
+val releaseStoreFilePath: String? =
+    System.getenv("ANDROID_KEYSTORE_FILE")
+        ?: (keystoreProperties["prodStoreFile"] as String?)
+val releaseStorePassword: String? =
+    System.getenv("ANDROID_KEYSTORE_PASSWORD")
+        ?: (keystoreProperties["prodStorePassword"] as String?)
+val releaseKeyAlias: String =
+    System.getenv("ANDROID_KEY_ALIAS")
+        ?: (keystoreProperties["prodKeyAlias"] as String?)
+        ?: "key0"
+val releaseKeyPassword: String? =
+    System.getenv("ANDROID_KEY_PASSWORD")
+        ?: (keystoreProperties["prodKeyPassword"] as String?)
+val hasReleaseSigning: Boolean =
+    releaseStoreFilePath != null &&
+        file(releaseStoreFilePath).exists() &&
+        releaseStorePassword != null &&
+        releaseKeyPassword != null
+
 android {
     namespace = "app.omnivore.omnivore"
 
@@ -39,10 +65,12 @@ android {
 
     signingConfigs {
         create("release") {
-            keyAlias = "key0"
-            storeFile = file("external/omnivore-prod.keystore")
-            storePassword = keystoreProperties["prodStorePassword"] as String?
-            keyPassword = keystoreProperties["prodKeyPassword"] as String?
+            if (hasReleaseSigning) {
+                keyAlias = releaseKeyAlias
+                storeFile = file(releaseStoreFilePath!!)
+                storePassword = releaseStorePassword
+                keyPassword = releaseKeyPassword
+            }
         }/*        debug {
                     if (keystoreProperties["demoStorePassword"] && keystoreProperties["demoKeyPassword"]) {
                         keyAlias = "androiddebugkey"
@@ -67,7 +95,13 @@ android {
         }
         release {
             isMinifyEnabled = false
-            signingConfig = signingConfigs.getByName("release")
+            signingConfig = if (hasReleaseSigning) {
+                signingConfigs.getByName("release")
+            } else {
+                // No release keystore available (e.g. local keyless clone) —
+                // fall back to debug signing so the build still succeeds.
+                signingConfigs.getByName("debug")
+            }
             buildConfigField("String", "OMNIVORE_API_URL", "\"https://api-prod.omnivore.work\"")
             buildConfigField("String", "OMNIVORE_WEB_URL", "\"https://omnivore.work\"")
             buildConfigField(
