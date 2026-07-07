@@ -19,7 +19,10 @@ if (keystorePropertiesFile.exists()) {
     }
 }
 
-// Release signing material. CI provides it via environment variables; a local
+// Release signing material — the Play UPLOAD key. Under Play App Signing,
+// Google generates and holds the actual app signing key and re-signs store
+// distributions; this keystore only authenticates Play uploads and signs
+// sideload/QA builds. CI provides it via environment variables; a local
 // developer may provide it via app/external/keystore.properties. When neither
 // is present (the common self-host / keyless-clone case) the release build
 // gracefully falls back to debug signing so `assembleRelease` still works.
