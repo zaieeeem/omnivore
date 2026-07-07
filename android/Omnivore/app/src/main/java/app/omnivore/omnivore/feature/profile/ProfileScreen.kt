@@ -87,7 +87,7 @@ fun SettingsViewContent(
                 title = stringResource(R.string.auto_sync_toggle_title),
                 subtitle = stringResource(R.string.auto_sync_toggle_subtitle),
                 checked = profileViewModel.autoSyncEnabled,
-                onCheckedChanged = { profileViewModel.setAutoSyncEnabled(it) },
+                onCheckedChanged = { profileViewModel.updateAutoSyncEnabled(it) },
             )
         }
 

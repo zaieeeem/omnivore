@@ -49,7 +49,7 @@ class ProfileViewModel @Inject constructor(
         }
     }
 
-    fun setAutoSyncEnabled(enabled: Boolean) {
+    fun updateAutoSyncEnabled(enabled: Boolean) {
         autoSyncEnabled = enabled
         viewModelScope.launch {
             datastoreRepo.putBoolean(libraryAutoSyncEnabled, enabled)
