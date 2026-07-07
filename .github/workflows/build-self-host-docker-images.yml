@@ -1,9 +1,10 @@
 name: Build Self-Hosting Docker Images
 
 env:
-  WEB_IMAGE: ghcr.io/omnivore-app/sh-web
+  WEB_IMAGE: ghcr.io/zaieeeem/sh-web
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
@@ -41,64 +42,64 @@ jobs:
       - name: Build and push backend
         uses: docker/build-push-action@v6
         with:
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64
           push: true
-          tags: ghcr.io/omnivore-app/sh-backend:latest
+          tags: ghcr.io/zaieeeem/sh-backend:latest
           file: packages/api/Dockerfile
-          cache-from: type=registry,ref=ghcr.io/omnivore-app/sh-backend:cache
-          cache-to: type=registry,ref=ghcr.io/omnivore-app/sh-backend:cache,mode=max
+          cache-from: type=registry,ref=ghcr.io/zaieeeem/sh-backend:cache
+          cache-to: type=registry,ref=ghcr.io/zaieeeem/sh-backend:cache,mode=max
 
       - name: Build and push queue-processor
         uses: docker/build-push-action@v6
         with:
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64
           push: true
-          tags: ghcr.io/omnivore-app/sh-queue-processor:latest
+          tags: ghcr.io/zaieeeem/sh-queue-processor:latest
           file: packages/api/queue-processor/Dockerfile
-          cache-from: type=registry,ref=ghcr.io/omnivore-app/sh-queue-processor:cache
-          cache-to: type=registry,ref=ghcr.io/omnivore-app/sh-queue-processor:cache,mode=max
+          cache-from: type=registry,ref=ghcr.io/zaieeeem/sh-queue-processor:cache
+          cache-to: type=registry,ref=ghcr.io/zaieeeem/sh-queue-processor:cache,mode=max
 
 
       - name: Build and push image-proxy
         uses: docker/build-push-action@v6
         with:
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64
           push: true
-          tags: ghcr.io/omnivore-app/sh-image-proxy:latest
+          tags: ghcr.io/zaieeeem/sh-image-proxy:latest
           context: imageproxy/
           file: imageproxy/Dockerfile
-          cache-from: type=registry,ref=ghcr.io/omnivore-app/sh-image-proxy:cache
-          cache-to: type=registry,ref=ghcr.io/omnivore-app/sh-image-proxy:cache,mode=max
+          cache-from: type=registry,ref=ghcr.io/zaieeeem/sh-image-proxy:cache
+          cache-to: type=registry,ref=ghcr.io/zaieeeem/sh-image-proxy:cache,mode=max
 
       - name: Build and push content-fetch
         uses: docker/build-push-action@v6
         with:
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64
           push: true
-          tags: ghcr.io/omnivore-app/sh-content-fetch:latest
+          tags: ghcr.io/zaieeeem/sh-content-fetch:latest
           file: packages/content-fetch/Dockerfile
-          cache-from: type=registry,ref=ghcr.io/omnivore-app/sh-content-fetch:cache
-          cache-to: type=registry,ref=ghcr.io/omnivore-app/sh-content-fetch:cache,mode=max
+          cache-from: type=registry,ref=ghcr.io/zaieeeem/sh-content-fetch:cache
+          cache-to: type=registry,ref=ghcr.io/zaieeeem/sh-content-fetch:cache,mode=max
 
       - name: Build and push migrate
         uses: docker/build-push-action@v6
         with:
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64
           push: true
-          tags: ghcr.io/omnivore-app/sh-migrate:latest
+          tags: ghcr.io/zaieeeem/sh-migrate:latest
           file: packages/db/Dockerfile
-          cache-from: type=registry,ref=ghcr.io/omnivore-app/sh-migrate:cache
-          cache-to: type=registry,ref=ghcr.io/omnivore-app/sh-migrate:cache,mode=max
+          cache-from: type=registry,ref=ghcr.io/zaieeeem/sh-migrate:cache
+          cache-to: type=registry,ref=ghcr.io/zaieeeem/sh-migrate:cache,mode=max
 
       - name: Build and push local-mail-watcher
         uses: docker/build-push-action@v6
         with:
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64
           push: true
-          tags: ghcr.io/omnivore-app/sh-local-mail-watcher:latest
+          tags: ghcr.io/zaieeeem/sh-local-mail-watcher:latest
           file: packages/local-mail-watcher/Dockerfile
-          cache-from: type=registry,ref=ghcr.io/omnivore-app/sh-local-mail-watcher:cache
-          cache-to: type=registry,ref=ghcr.io/omnivore-app/sh-local-mail-watcher:cache,mode=max
+          cache-from: type=registry,ref=ghcr.io/zaieeeem/sh-local-mail-watcher:cache
+          cache-to: type=registry,ref=ghcr.io/zaieeeem/sh-local-mail-watcher:cache,mode=max
   build-selfhost-web-images:
     name: Build self-host web images
     permissions:
@@ -110,7 +111,6 @@ jobs:
       matrix:
         platform:
           - linux/amd64
-          - linux/arm64
     runs-on: ubuntu-latest
     steps:
       - name: Prepare
@@ -151,8 +151,8 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           tags: ${{ env.WEB_IMAGE }}
           outputs: type=image,push-by-digest=true,name-canonical=true,push=true
-          cache-from: type=registry,ref=ghcr.io/omnivore-app/sh-web-${{matrix.platform}}:cache
-          cache-to: type=registry,ref=ghcr.io/omnivore-app/sh-web-${{matrix.platform}}:cache,mode=max
+          cache-from: type=registry,ref=ghcr.io/zaieeeem/sh-web-${{matrix.platform}}:cache
+          cache-to: type=registry,ref=ghcr.io/zaieeeem/sh-web-${{matrix.platform}}:cache,mode=max
       - name: Export digest
         run: |
           mkdir -p ${{ runner.temp }}/digests
@@ -213,17 +213,17 @@ jobs:
 #        with:
 #          platforms: linux/amd64
 #          push: true
-#          tags: ghcr.io/omnivore-app/sh-web:latest
+#          tags: ghcr.io/zaieeeem/sh-web:latest
 #          file: packages/web/Dockerfile-self
-#          cache-from: type=registry,ref=ghcr.io/omnivore-app/sh-web:cache
-#          cache-to: type=registry,ref=ghcr.io/omnivore-app/sh-web:cache,mode=max
+#          cache-from: type=registry,ref=ghcr.io/zaieeeem/sh-web:cache
+#          cache-to: type=registry,ref=ghcr.io/zaieeeem/sh-web:cache,mode=max
 #
 #      - name: Build and push web (arm64)
 #        uses: docker/build-push-action@v6
 #        with:
 #          platforms: linux/arm64
 #          push: true
-#          tags: ghcr.io/omnivore-app/sh-web:latest
+#          tags: ghcr.io/zaieeeem/sh-web:latest
 #          file: packages/web/Dockerfile-self
-#          cache-from: type=registry,ref=ghcr.io/omnivore-app/sh-web-arm:cache
-#          cache-to: type=registry,ref=ghcr.io/omnivore-app/sh-web-arm:cache,mode=max
+#          cache-from: type=registry,ref=ghcr.io/zaieeeem/sh-web-arm:cache
+#          cache-to: type=registry,ref=ghcr.io/zaieeeem/sh-web-arm:cache,mode=max
