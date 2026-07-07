@@ -1,5 +1,19 @@
 <resources>
     <string name="app_name">Omnivore</string>
+    <!--
+      Third-party service keys. These default to the "unset" placeholder so the
+      app builds and runs fully self-hosted without any proprietary credentials.
+      Copy secrets.xml into this file (or override these values) to enable
+      PSPDFKit, Intercom and PostHog. When a key is left as "unset" the related
+      feature is gated off at runtime (see utils/Secrets.kt) so nothing crashes.
+    -->
+    <string name="pspdfkit_license_key">unset</string>
+    <string name="intercom_api_key">unset</string>
+    <string name="intercom_app_id">unset</string>
+    <string name="posthog_client_key">unset</string>
+    <string name="posthog_instance_address">unset</string>
+    <string name="pdf_no_viewer_available">No PDF viewer app is installed to open this file.</string>
+    <string name="pdf_could_not_be_loaded">This PDF could not be loaded.</string>
     <string name="welcome_title">Never miss a great read</string>
     <string name="learn_more">Learn More</string>
     <string name="welcome_subtitle">Save articles and read them later in our distraction-free reader.</string>

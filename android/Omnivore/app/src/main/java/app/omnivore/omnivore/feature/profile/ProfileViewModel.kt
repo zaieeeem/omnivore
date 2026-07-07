@@ -11,7 +11,7 @@ import app.omnivore.omnivore.core.datastore.libraryLastSyncTimestamp
 import app.omnivore.omnivore.core.network.Networker
 import app.omnivore.omnivore.core.network.viewer
 import dagger.hilt.android.lifecycle.HiltViewModel
-import io.intercom.android.sdk.Intercom
+import app.omnivore.omnivore.core.analytics.IntercomManager
 import io.intercom.android.sdk.IntercomSpace
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -48,10 +48,12 @@ class ProfileViewModel @Inject constructor(
         viewModelScope.launch {
             val viewer = networker.viewer()
             viewer?.let { v ->
-                v.intercomHash?.let { intercomHash ->
-                    Intercom.client().setUserHash(intercomHash)
+                IntercomManager.ifEnabled { client ->
+                    v.intercomHash?.let { intercomHash ->
+                        client.setUserHash(intercomHash)
+                    }
+                    client.present(space = IntercomSpace.Messages)
                 }
-                Intercom.client().present(space = IntercomSpace.Messages)
             }
         }
     }
