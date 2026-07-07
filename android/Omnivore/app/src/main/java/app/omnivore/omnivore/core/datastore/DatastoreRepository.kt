@@ -21,6 +21,7 @@ interface DatastoreRepository {
     suspend fun clear()
     suspend fun putBoolean(key: String, value: Boolean)
     fun getBoolean(key: String): Flow<Boolean>
+    suspend fun getBooleanOrDefault(key: String, default: Boolean): Boolean
     suspend fun putString(key: String, value: String)
     suspend fun putInt(key: String, value: Int)
     suspend fun getString(key: String): String?
@@ -47,6 +48,12 @@ class OmnivoreDatastore @Inject constructor(
         return context.dataStore.data.map { preferences ->
             preferences[preferencesKey] ?: false
         }
+    }
+
+    override suspend fun getBooleanOrDefault(key: String, default: Boolean): Boolean {
+        val preferencesKey = booleanPreferencesKey(key)
+        val preferences = context.dataStore.data.first()
+        return preferences[preferencesKey] ?: default
     }
 
     override suspend fun putString(key: String, value: String) {
