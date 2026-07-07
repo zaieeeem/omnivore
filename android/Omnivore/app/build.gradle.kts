@@ -51,7 +51,7 @@ android {
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "app.omnivore.omnivore"
+        applicationId = "com.error314.omnivore"
         minSdk = 26
         targetSdk = 34
         versionCode = 2260000
