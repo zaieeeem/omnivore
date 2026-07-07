@@ -1,9 +1,11 @@
 package app.omnivore.omnivore.feature.reader
 
 import android.annotation.SuppressLint
+import android.content.ActivityNotFoundException
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.content.Intent
 import android.graphics.PointF
 import android.graphics.Rect
 import android.graphics.RectF
@@ -13,12 +15,16 @@ import android.os.Bundle
 import android.util.Log
 import android.view.*
 import android.widget.ImageView
+import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.core.graphics.drawable.DrawableCompat
+import androidx.core.net.toFile
 import androidx.lifecycle.Observer
 import app.omnivore.omnivore.R
+import app.omnivore.omnivore.utils.hasPspdfkitLicense
 import app.omnivore.omnivore.core.database.entities.Highlight
 import com.pspdfkit.annotations.Annotation
 import com.pspdfkit.annotations.HighlightAnnotation
@@ -62,6 +68,16 @@ class PDFReaderActivity: AppCompatActivity(), DocumentListener, TextSelectionMan
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
 
+    val slug = intent.getStringExtra("SAVED_ITEM_SLUG") ?: ""
+
+    // When PSPDFKit has no valid license (the self-hosted default), skip the
+    // PSPDFKit reader entirely and open the PDF in the system viewer. This keeps
+    // the app fully functional on PDFs without any proprietary license.
+    if (!hasPspdfkitLicense(this)) {
+      loadWithSystemViewer(slug)
+      return
+    }
+
     configuration = PdfConfiguration.Builder()
       .scrollDirection(PageScrollDirection.HORIZONTAL)
       .build()
@@ -78,8 +94,51 @@ class PDFReaderActivity: AppCompatActivity(), DocumentListener, TextSelectionMan
     // Observe the LiveData, passing in this activity as the LifecycleOwner and the observer.
     viewModel.pdfReaderParamsLiveData.observe(this, pdfParamsObserver)
 
-    val slug = intent.getStringExtra("SAVED_ITEM_SLUG") ?: ""
     viewModel.loadItem(slug, this)
+  }
+
+  /**
+   * PSPDFKit-free fallback: resolve the PDF to a local file and hand it to the
+   * system PDF viewer via a FileProvider content URI, then finish this activity.
+   */
+  private fun loadWithSystemViewer(slug: String) {
+    viewModel.pdfFallbackFileLiveData.observe(this, Observer { fileUri ->
+      if (fileUri == null) {
+        Toast.makeText(
+          this,
+          getString(R.string.pdf_could_not_be_loaded),
+          Toast.LENGTH_LONG
+        ).show()
+        finish()
+        return@Observer
+      }
+
+      val file = fileUri.toFile()
+      val contentUri = FileProvider.getUriForFile(
+        this,
+        "${applicationContext.packageName}.fileprovider",
+        file
+      )
+
+      val viewIntent = Intent(Intent.ACTION_VIEW).apply {
+        setDataAndType(contentUri, "application/pdf")
+        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+      }
+
+      try {
+        startActivity(viewIntent)
+      } catch (e: ActivityNotFoundException) {
+        Toast.makeText(
+          this,
+          getString(R.string.pdf_no_viewer_available),
+          Toast.LENGTH_LONG
+        ).show()
+      }
+      finish()
+    })
+
+    viewModel.loadItemForExternalViewer(slug, this)
   }
 
   override fun onDestroy() {

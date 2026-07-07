@@ -1,6 +1,7 @@
 package app.omnivore.omnivore
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -11,6 +12,7 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.lifecycleScope
 import app.omnivore.omnivore.feature.root.RootView
 import app.omnivore.omnivore.feature.theme.OmnivoreTheme
+import app.omnivore.omnivore.utils.hasPspdfkitLicense
 import com.pspdfkit.PSPDFKit
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
@@ -25,13 +27,20 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
 
-        lifecycleScope.launch(Dispatchers.IO) {
-            val licenseKey = getString(R.string.pspdfkit_license_key)
-
-            if (licenseKey.length > 30) {
-                PSPDFKit.initialize(this@MainActivity, licenseKey)
-            } else {
-                PSPDFKit.initialize(this@MainActivity, null)
+        // Only initialize PSPDFKit (proprietary, license-keyed) when a real
+        // license is configured. Without one the app never touches PSPDFKit and
+        // opens PDFs through the system viewer instead (see PDFReaderActivity),
+        // so a missing/dummy license can never crash the app.
+        if (hasPspdfkitLicense(this)) {
+            lifecycleScope.launch(Dispatchers.IO) {
+                try {
+                    PSPDFKit.initialize(
+                        this@MainActivity,
+                        getString(R.string.pspdfkit_license_key)
+                    )
+                } catch (e: Throwable) {
+                    Log.e("MainActivity", "PSPDFKit initialization failed", e)
+                }
             }
         }
 
