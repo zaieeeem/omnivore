@@ -14,13 +14,24 @@ interface AnalyticClient {
 }
 
 class PostHogClient implements AnalyticClient {
-  private client: PostHog
+  private client: PostHog | null
 
-  constructor(apiKey: string) {
-    this.client = new PostHog(apiKey)
+  constructor(apiKey: string | null) {
+    // Only construct a real PostHog client when an API key is configured and
+    // we're not running locally. Self-hosted deploys leave POSTHOG_API_KEY
+    // empty, so analytics becomes an inert no-op.
+    if (apiKey && !env.dev.isLocal) {
+      this.client = new PostHog(apiKey)
+    } else {
+      this.client = null
+    }
   }
 
   capture({ distinctId, event, properties }: AnalyticEvent) {
+    if (!this.client) {
+      return
+    }
+
     // // get client from request context
     // const client = httpContext.get<string>('client') || 'other'
     // this.client.capture({
@@ -35,8 +46,11 @@ class PostHogClient implements AnalyticClient {
   }
 
   async shutdownAsync() {
+    if (!this.client) {
+      return
+    }
     return this.client.shutdownAsync()
   }
 }
 
-export const analytics = new PostHogClient(env.posthog.apiKey || 'test')
+export const analytics = new PostHogClient(env.posthog.apiKey)

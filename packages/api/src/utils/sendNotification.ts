@@ -11,16 +11,29 @@ import { logger } from './logger'
 
 export type PushNotificationType = 'newsletter' | 'reminder' | 'rule'
 
-// getting credentials from App Engine
-initializeApp({
-  credential: applicationDefault(),
-})
+let firebaseInitialized = false
+if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
+  try {
+    // getting credentials from App Engine
+    initializeApp({
+      credential: applicationDefault(),
+    })
+    firebaseInitialized = true
+  } catch (error) {
+    logger.error('Failed to initialize Firebase Admin', error)
+  }
+}
 
 export const sendPushNotification = async (
   userId: string,
   message: Message,
   type: PushNotificationType
 ): Promise<string | undefined> => {
+  if (!firebaseInitialized) {
+    logger.debug('Firebase not initialized; skipping sendPushNotification')
+    return undefined
+  }
+
   try {
     analytics.capture({
       distinctId: userId,
@@ -48,6 +61,11 @@ export const sendMulticastPushNotifications = async (
   message: MulticastMessage,
   type: PushNotificationType
 ): Promise<BatchResponse | undefined> => {
+  if (!firebaseInitialized) {
+    logger.debug('Firebase not initialized; skipping sendMulticastPushNotifications')
+    return undefined
+  }
+
   try {
     analytics.capture({
       distinctId: userId,
@@ -74,6 +92,11 @@ export const sendMulticastPushNotifications = async (
 export const sendBatchPushNotifications = async (
   messages: Message[]
 ): Promise<BatchResponse | undefined> => {
+  if (!firebaseInitialized) {
+    logger.debug('Firebase not initialized; skipping sendBatchPushNotifications')
+    return undefined
+  }
+
   try {
     const res = await getMessaging().sendEach(messages)
     logger.info(`success count: ${res.successCount}`)
