@@ -48,12 +48,12 @@ val hasReleaseSigning: Boolean =
 android {
     namespace = "app.omnivore.omnivore"
 
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.error314.omnivore"
         minSdk = 26
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 2260000
         versionName = "0.226.0"
 
