@@ -53,7 +53,7 @@ private suspend fun currentWifiSsidApi33(context: Context): String? {
     return withTimeoutOrNull(SSID_READ_TIMEOUT_MS) {
         suspendCancellableCoroutine { continuation ->
             val callback = object : ConnectivityManager.NetworkCallback(
-                FLAG_INCLUDE_LOCATION_INFO
+                ConnectivityManager.NetworkCallback.FLAG_INCLUDE_LOCATION_INFO
             ) {
                 override fun onCapabilitiesChanged(
                     network: Network,
