@@ -220,6 +220,14 @@ apollo {
     }
 }
 
+// Apollo 3 connects its generated sources to the Kotlin source set, but KSP2's
+// KspAATask does not pick up that task dependency, so Gradle 8.14 fails the
+// build with an implicit-dependency validation error. Declare it explicitly.
+// (Apollo 4 fixes this upstream — drop when the deferred Apollo major lands.)
+tasks.withType<com.google.devtools.ksp.gradle.KspAATask>().configureEach {
+    dependsOn(tasks.named("generateServiceApolloSources"))
+}
+
 tasks.register("printVersion") {
     doLast {
         println("omnivoreVersion: ${android.defaultConfig.versionName}")
