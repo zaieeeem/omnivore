@@ -238,6 +238,15 @@
     <string name="profile_manage_account">Manage Account</string>
     <string name="about_logout">Logout</string>
 
+    <!-- Auto-sync -->
+    <string name="auto_sync_toggle_title">Sync library in background</string>
+    <string name="auto_sync_toggle_subtitle">Periodically download new articles over Wi-Fi so they are readable offline</string>
+    <string name="auto_sync_home_wifi_title">Only on my home Wi-Fi</string>
+    <string name="auto_sync_home_wifi_any_subtitle">Any Wi-Fi network — tap to restrict syncing to the Wi-Fi you are connected to now</string>
+    <string name="auto_sync_home_wifi_set_subtitle">%1$s — tap to allow any Wi-Fi</string>
+    <string name="auto_sync_wifi_name_unavailable">Couldn\'t read the Wi-Fi name. Make sure you are connected to Wi-Fi and try again.</string>
+    <string name="auto_sync_wifi_permission_denied">Nearby devices permission is needed to read the Wi-Fi name. Auto-sync will run on any Wi-Fi.</string>
+
     <!-- About -->
     <string name="about_view_title">About</string>
     <string name="about_view_row_version">Version</string>
