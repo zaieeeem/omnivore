@@ -36,6 +36,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.io.File
+import java.net.URL
 import java.lang.Double.max
 import java.lang.Double.min
 import java.util.*
@@ -55,6 +56,14 @@ class PDFReaderViewModel @Inject constructor(
 ): ViewModel() {
   var annotationUnderNoteEdit: Annotation? = null
   val pdfReaderParamsLiveData = MutableLiveData<PDFReaderParams?>(null)
+
+  // Fallback path used when PSPDFKit is unlicensed: resolves a local PDF file
+  // (downloading it over plain HTTP if needed) WITHOUT touching PSPDFKit, so it
+  // can be handed to the system PDF viewer. Emits the local file Uri, or null
+  // if the PDF could not be obtained. No initial value so the observer only
+  // fires once the resolution actually finishes.
+  val pdfFallbackFileLiveData = MutableLiveData<Uri?>()
+
   private var currentReadingProgress = 0.0
   private var currentReadingPageIndex = 0
 
@@ -62,6 +71,39 @@ class PDFReaderViewModel @Inject constructor(
     viewModelScope.launch {
       loadItemFromDB(slug, context)
       loadItemFromNetwork(slug, context)
+    }
+  }
+
+  /**
+   * Resolve the PDF as a plain local file for the system viewer fallback.
+   * Never uses PSPDFKit (its DownloadJob/APIs require an initialized SDK).
+   */
+  fun loadItemForExternalViewer(slug: String, context: Context) {
+    viewModelScope.launch(Dispatchers.IO) {
+      try {
+        val persisted = dataService.db.savedItemDao()
+          .getSavedItemWithLabelsAndHighlights(slug)
+        val item = persisted?.savedItem
+        val fileName = "${item?.savedItemId ?: slug}.pdf"
+        val file = File(context.filesDir, fileName)
+
+        if (!file.exists()) {
+          val url = item?.pageURLString
+            ?: networker.savedItem(context = applicationContext, slug).item?.pageURLString
+          if (url != null) {
+            URL(url).openStream().use { input ->
+              context.openFileOutput(fileName, Context.MODE_PRIVATE).use { output ->
+                input.copyTo(output)
+              }
+            }
+          }
+        }
+
+        pdfFallbackFileLiveData.postValue(if (file.exists()) Uri.fromFile(file) else null)
+      } catch (e: Exception) {
+        Log.e("PDF", "Failed to resolve PDF for system viewer", e)
+        pdfFallbackFileLiveData.postValue(null)
+      }
     }
   }
 
