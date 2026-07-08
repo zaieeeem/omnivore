@@ -36,7 +36,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.pulltorefresh.PullToRefreshContainer
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
+import androidx.compose.material3.pulltorefresh.pullToRefresh
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -47,6 +48,7 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -54,7 +56,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -344,12 +345,13 @@ fun LibraryViewContent(
     val listState = rememberLazyListState()
 
     val pullToRefreshState = rememberPullToRefreshState()
-    if (pullToRefreshState.isRefreshing) {
+    var isRefreshing by remember { mutableStateOf(false) }
+    if (isRefreshing) {
         LaunchedEffect(true) {
             // fetch something
             delay(1500)
             refresh()
-            pullToRefreshState.endRefresh()
+            isRefreshing = false
         }
     }
 
@@ -357,7 +359,11 @@ fun LibraryViewContent(
         modifier = Modifier
             .padding(top = paddingValues.calculateTopPadding())
             .fillMaxSize()
-            .nestedScroll(pullToRefreshState.nestedScrollConnection)
+            .pullToRefresh(
+                isRefreshing = isRefreshing,
+                state = pullToRefreshState,
+                onRefresh = { isRefreshing = true },
+            )
     ) {
         Column {
             LibraryFilterBar(
@@ -413,7 +419,7 @@ fun LibraryViewContent(
                         true
                     })
                     SwipeToDismiss(
-                        modifier = Modifier.animateItemPlacement(),
+                        modifier = Modifier.animateItem(),
                         state = swipeState,
                         directions = setOf(
                             DismissDirection.StartToEnd, DismissDirection.EndToStart
@@ -494,8 +500,9 @@ fun LibraryViewContent(
             }
         }
 
-        PullToRefreshContainer(
+        PullToRefreshDefaults.Indicator(
             modifier = Modifier.align(Alignment.TopCenter),
+            isRefreshing = isRefreshing,
             state = pullToRefreshState,
         )
     }
