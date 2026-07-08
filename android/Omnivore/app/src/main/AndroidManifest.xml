@@ -11,6 +11,14 @@
          requires the typed foreground-service permission). -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <!-- Read the current Wi-Fi SSID (API 33+) so background auto-sync can be
+         restricted to the user's home network. neverForLocation: the SSID is
+         only compared against the stored home-network name, never used to
+         derive location, so no location permission is needed or requested. -->
+    <uses-permission
+        android:name="android.permission.NEARBY_WIFI_DEVICES"
+        android:usesPermissionFlags="neverForLocation"
+        tools:targetApi="s" />
 
     <application
         android:name=".OmnivoreApplication"
