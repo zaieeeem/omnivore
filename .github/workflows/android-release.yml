@@ -88,9 +88,9 @@ jobs:
             echo "::notice::PLAY_SERVICE_ACCOUNT_JSON not set — skipping Play upload (AAB on the GH artifact only)."
           fi
 
-      # Only main publishes to Play: feature-branch dispatches are build
-      # verification only (a re-upload of an already-used versionCode would
-      # fail anyway).
+      # Only main-branch builds ship to Play: branch/dispatch verification builds
+      # reuse the unbumped versionCode, so a Play upload from them can only fail
+      # with "Version code N has already been used".
       - name: Upload AAB to Google Play (internal track)
         if: ${{ steps.playsa.outputs.present == 'true' && github.ref == 'refs/heads/main' }}
         uses: r0adkll/upload-google-play@v1

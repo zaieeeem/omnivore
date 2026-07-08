@@ -1,5 +1,6 @@
 import java.io.FileInputStream
 import java.util.Properties
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.android.application)
@@ -48,12 +49,12 @@ val hasReleaseSigning: Boolean =
 android {
     namespace = "app.omnivore.omnivore"
 
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.error314.omnivore"
         minSdk = 26
-        targetSdk = 35
+        targetSdk = 36
         versionCode = 2260000
         versionName = "0.226.0"
 
@@ -118,9 +119,6 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_17.toString()
-    }
     buildFeatures {
         compose = true
         buildConfig = true
@@ -130,6 +128,12 @@ android {
         resources {
             excludes += listOf("/META-INF/{AL2.0,LGPL2.1}")
         }
+    }
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_17)
     }
 }
 
@@ -214,6 +218,14 @@ apollo {
         }
         packageName.set("app.omnivore.omnivore.graphql.generated")
     }
+}
+
+// Apollo 3 connects its generated sources to the Kotlin source set, but KSP2's
+// KspAATask does not pick up that task dependency, so Gradle 8.14 fails the
+// build with an implicit-dependency validation error. Declare it explicitly.
+// (Apollo 4 fixes this upstream — drop when the deferred Apollo major lands.)
+tasks.withType<com.google.devtools.ksp.gradle.KspAATask>().configureEach {
+    dependsOn(tasks.named("generateServiceApolloSources"))
 }
 
 tasks.register("printVersion") {

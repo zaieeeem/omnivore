@@ -172,7 +172,7 @@ fun TypeaheadSearchViewContent(viewModel: SearchViewModel, modifier: Modifier) {
     ) {
         items(searchedCardsData, key = { it.savedItemId } ) { cardData ->
             TypeaheadSearchCard(
-                modifier = Modifier.animateItemPlacement(),
+                modifier = Modifier.animateItem(),
                 cardData = cardData,
                 onClickHandler = {
                     // val activityClass = if (cardData.isPDF()) PDFReaderActivity::class.java else WebReaderLoadingContainerActivity::class.java

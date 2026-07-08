@@ -187,11 +187,11 @@ fun EditNoteModal(initialValue: String?, onDismiss: (save: Boolean, text: String
                         .focusRequester(focusRequester)
                         .fillMaxSize(),
                     keyboardOptions = KeyboardOptions.Default.copy(
-                        autoCorrect = true,
+                        autoCorrectEnabled = true,
                         capitalization = KeyboardCapitalization.Sentences
                     ),
                     value = annotation.value, onValueChange = { annotation.value = it },
-                    colors = TextFieldDefaults.textFieldColors(
+                    colors = TextFieldDefaults.colors(
                         focusedTextColor = MaterialTheme.colorScheme.onSurface,
                         unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
                     )
